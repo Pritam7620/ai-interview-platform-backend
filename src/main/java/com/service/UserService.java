@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.JWTsecurity.JWT_Security;
 import com.entity.User;
 import com.repository.UserRepo;
 
@@ -15,6 +16,8 @@ public class UserService {
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	@Autowired
+	private JWT_Security jwt_Security;
 	
 	public User register(User user) {
 		
@@ -24,18 +27,21 @@ public class UserService {
 	}
 	
 	
-	public User login(String email , String password) {
-		
-		 User user = userRepo.findByEmail(email);
 
-		    if (user == null) {
-		        throw new RuntimeException("User not found");
-		    }
+	public String login(String email, String password) {
 
-		    if (!passwordEncoder.matches(password, user.getPassword())) {
-		        throw new RuntimeException("Invalid password");
-		    }
+	    User user = userRepo.findByEmail(email);
 
-		    return user;
+	    if (user == null) {
+	        throw new RuntimeException("User not found");
+	    }
+
+	    if (!passwordEncoder.matches(password, user.getPassword())) {
+	        throw new RuntimeException("Invalid password");
+	    }
+
+	    return jwt_Security.generateToken(email);
 	}
+	
+	
 }
