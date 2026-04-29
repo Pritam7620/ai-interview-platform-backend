@@ -2,16 +2,11 @@ package com.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Arrays; // Added
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.entity.Interview;
-import com.entity.Question;
-import com.entity.User;
-import com.repository.InterviewRepository;
-import com.repository.QuestionRepository;
-import com.repository.UserRepo;
+import com.entity.*;
+import com.repository.*;
 
 @Service
 public class InterviewService {
@@ -26,7 +21,7 @@ public class InterviewService {
     private UserRepo userRepo;
 
     @Autowired
-    private OpenAIService openAIService;
+    private GeminiService geminiService; // Added this
 
     public Interview startInterview(Long userId, String domain, String difficulty) {
 
@@ -38,28 +33,25 @@ public class InterviewService {
         interview.setUser(user);
         interview.setDomain(domain);
         interview.setDifficulty(difficulty);
-
         Interview savedInterview = interviewRepo.save(interview);
 
-        // 2. Generate Questions (AI)
-        List<String> generatedQuestions = List.of(
-        	    "What is Java?",
-        	    "Explain OOP concepts",
-        	    "What is inheritance?",
-        	    "What is polymorphism?"
-        	);
+        // 2. Generate Questions using Gemini
+     // Inside InterviewService.java
+        String prompt = "Generate 5 interview questions for a " + domain + " role at " + difficulty + " level. " +
+                        "Return only the questions separated by a '|' character.";
+        String aiResponse = geminiService.getAIResponse(prompt);
+        List<String> generatedQuestions = Arrays.asList(aiResponse.split("\\|"));
+        
         // 3. Save Questions
-        List<Question> questions = new ArrayList();
-
-        for (String q : generatedQuestions) {
+        List<Question> questions = new ArrayList<>();
+        for (String qText : generatedQuestions) {
             Question question = new Question();
-            question.setQuestionText(q);
+            question.setQuestionText(qText.trim());
             question.setInterview(savedInterview);
             questions.add(question);
         }
 
         questionRepo.saveAll(questions);
-
         return savedInterview;
     }
 }

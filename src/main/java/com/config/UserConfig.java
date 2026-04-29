@@ -32,6 +32,7 @@ public class UserConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 	    http
+	    .cors(Customizer.withDefaults())
 	        .csrf(csrf -> csrf.disable())
 	        .authorizeHttpRequests(auth -> auth
 	            .requestMatchers(HttpMethod.POST, "/answer/submit").permitAll()

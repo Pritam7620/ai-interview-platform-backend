@@ -1,6 +1,5 @@
 package com.service;
 
-
 import com.data_authenticate.AnswerRequest;
 import com.entity.Answer;
 import com.entity.Question;
@@ -19,20 +18,27 @@ public class AnswerService {
     private QuestionRepository questionRepo;
 
     @Autowired
-    private OpenAIService openAIService;
+    private GeminiService geminiService; // Added this
 
     public Answer submitAnswer(AnswerRequest request) {
 
         Question question = questionRepo.findById(request.getQuestionId())
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        String evaluation = "Good answer, but can be improved with more details.";
-        int score = 7;
+        // AI Evaluation Prompt
+     // Inside AnswerService.java
+        String prompt = "Question: " + question.getQuestionText() + "\nUser Answer: " + request.getAnswer() + 
+                        "\nRate this answer out of 10 and give feedback.";
+        String evaluation = geminiService.getAIResponse(prompt);
+        // Use your extractScore logic to parse the number from 'evaluation'
+        
+        // Extracting score and feedback from AI string
+        int score = extractScore(evaluation);
 
         Answer answer = new Answer();
         answer.setQuestion(question);
         answer.setAnswerText(request.getAnswer());
-        answer.setFeedback(evaluation);
+        answer.setFeedback(evaluation); // Stores the full AI feedback
         answer.setScore(score);
 
         return answerRepo.save(answer);
@@ -40,9 +46,11 @@ public class AnswerService {
 
     private int extractScore(String text) {
         try {
-            return Integer.parseInt(text.replaceAll("[^0-9]", "").substring(0, 2));
+            // Looks for the first number in the AI response
+            String scoreStr = text.replaceAll("[^0-9]", " ").trim().split(" ")[0];
+            return Integer.parseInt(scoreStr);
         } catch (Exception e) {
-            return 5; // fallback
+            return 5; // Default fallback score
         }
     }
 }
