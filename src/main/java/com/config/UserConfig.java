@@ -31,18 +31,19 @@ public class UserConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-	    http.csrf(csrf -> csrf.disable())
-	        .authorizeHttpRequests(authorize -> {
-	        	authorize.requestMatchers("/users/register").permitAll();
-	        	authorize.requestMatchers("/users/login").permitAll();
-	        	authorize.requestMatchers("/resume/upload").permitAll();
-	        	authorize.anyRequest().authenticated();
-	        })
-	        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+	    http
+	        .csrf(csrf -> csrf.disable())
+	        .authorizeHttpRequests(auth -> auth
+	            .requestMatchers(HttpMethod.POST, "/answer/submit").permitAll()
+	            .requestMatchers(HttpMethod.POST, "/interview/start").permitAll()
+	            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
+	            .anyRequest().permitAll()	        )
+	        .formLogin(form -> form.disable())
+	        .httpBasic(basic -> basic.disable())
+	        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); 
 
 	    return http.build();
 	}
-	
 	
 	
 }
